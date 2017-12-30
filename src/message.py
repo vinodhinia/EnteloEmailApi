@@ -27,17 +27,19 @@ class MessageResource(Resource):
         is_valid = validate_email(to)
         if is_valid is False:
             return {'message' : 'Invalid recipient email. Please enter a valid email address'},400
+        if self.send_message(to, subject, message):
+            return {'message': 'Email sent successfully'}
+        return {'message' : 'Email sending failed'}
 
+    def send_message(self, to, subject, message):
         sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
         from_email = Email("entelotest@gmail.com")
         to_email = Email(to)
         content = Content("text/plain", message)
         mail = Mail(from_email, subject, to_email, content)
         response = sg.client.mail.send.post(request_body=mail.get())
-        print response.status_code
-        print response.body
-        print response.headers
-        return {'message' : 'Email sent successfully'}, response.status_code
+        return response.status_code == 202
+
 
 
 
