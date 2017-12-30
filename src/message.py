@@ -32,6 +32,7 @@ class MessageResource(Resource):
         return {'message' : 'Email sending failed'}
 
     def send_message(self, to, subject, message):
+        '''send email to the recipeient via Sendgrid'''
         sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
         from_email = Email("entelotest@gmail.com")
         to_email = Email(to)
