@@ -1,8 +1,10 @@
 import flask
 from flask import request
+from validate_email import validate_email
 from flask_restful import Resource,reqparse
-import smtplib
-from email.mime.text import MIMEText
+import sendgrid
+import os
+from sendgrid.helpers.mail import *
 
 class MessageResource(Resource):
     parser = reqparse.RequestParser()
@@ -17,19 +19,25 @@ class MessageResource(Resource):
                         help="This field cannot be blank")
 
     def post(self):
-        #import pdb;pdb.set_trace()
         data = MessageResource.parser.parse_args()
         to = data['to']
         subject = data['subject']
         message = data['message']
-        self. create_message('vinuashok29@gmail.com', to, subject, message)
 
-    def create_message(self, sender, to, subject, message_text):
-        message = MIMEText(message_text)
-        message['to'] = to
-        message['from'] = sender
-        message['subject'] = subject
-        s = smtplib.SMTP('localhost')
-        s.send_message(message)
-        s.quit()
+        is_valid = validate_email(to)
+        if is_valid is False:
+            return {'message' : 'Invalid recipient email. Please verify the email address'},400
+
+        sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
+        from_email = Email("entelotest@gmail.com")
+        to_email = Email(to)
+        content = Content("text/plain", message)
+        mail = Mail(from_email, subject, to_email, content)
+        response = sg.client.mail.send.post(request_body=mail.get())
+        print response.status_code
+        print response.body
+        print response.headers
+        return {'message' : 'Email sent successfully'}, response.status_code
+
+
 
