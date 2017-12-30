@@ -26,7 +26,7 @@ class MessageResource(Resource):
 
         is_valid = validate_email(to)
         if is_valid is False:
-            return {'message' : 'Invalid recipient email. Please verify the email address'},400
+            return {'message' : 'Invalid recipient email. Please enter a valid email address'},400
 
         sg = sendgrid.SendGridAPIClient(apikey=os.environ.get('SENDGRID_API_KEY'))
         from_email = Email("entelotest@gmail.com")
